@@ -179,7 +179,6 @@ void print_list(list *list)
   }
 
   pthread_mutex_lock(&(list->head->lock));
-  pthread_mutex_unlock(&(list->lock));
 
   node *curr = list->head;
   print_node(curr);//print the first node
@@ -197,6 +196,8 @@ void print_list(list *list)
   // unlock for the last node
   pthread_mutex_unlock(&(curr->lock));
   printf("\n");
+  pthread_mutex_unlock(&(list->lock));
+
 }
 
 void count_list(list* list, int (*predicate)(int))
