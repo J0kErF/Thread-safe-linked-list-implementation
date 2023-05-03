@@ -93,7 +93,8 @@ void insert_value(list *list, int value)
 
   node *prev = NULL;
 
-  while (curr && curr->value < value) {
+  while (curr && curr->value < value)
+  {
     if (curr->next)
       pthread_mutex_lock(&(curr->next->lock));
     if (prev)
@@ -109,27 +110,32 @@ void insert_value(list *list, int value)
     list->head = new;
   new->next = curr;
 
-
   // unlock the nodes that we dealt with at last
   pthread_mutex_unlock(&(new->lock));
   // in case the node is at the middle or the last of the list
   if (prev)
     pthread_mutex_unlock(&(prev->lock));
-  if(curr)
+  if (curr)
     pthread_mutex_unlock(&(curr->lock));
   // unlock the list
 }
 
-void remove_value(list *list, int value) {
+void remove_value(list *list, int value)
+{
   if (!list)
     return;
 
   pthread_mutex_lock(&(list->lock));
 
   node *curr = list->head;
+  pthread_mutex_lock(&(curr->lock));
+
+  pthread_mutex_unlock(&(list->lock));
+
   node *prev = NULL;
 
-  while (curr && curr->value != value) {
+  while (curr && curr->value != value)
+  {
     if (curr->next)
       pthread_mutex_lock(&(curr->next->lock));
     if (prev)
@@ -138,7 +144,10 @@ void remove_value(list *list, int value) {
     curr = curr->next;
   }
 
-  if (!curr) {
+  if (!curr)
+  {
+    if (prev)
+      pthread_mutex_unlock(&(prev->lock));
     pthread_mutex_unlock(&(list->lock));
     return; // the value is not in the list
   }
@@ -152,11 +161,9 @@ void remove_value(list *list, int value) {
   // unlock the nodes that we dealt with at last
   if (prev)
     pthread_mutex_unlock(&(prev->lock));
-  if (curr->next)
-    pthread_mutex_unlock(&(curr->next->lock));
-  pthread_mutex_unlock(&(list->lock));
 
   // destroy and free the node
+  pthread_mutex_unlock(&(curr->lock));
   pthread_mutex_destroy(&(curr->lock));
   free(curr);
 }
@@ -171,7 +178,7 @@ void print_list(list *list)
 
   pthread_mutex_lock(&(list->lock));
 
-  if (!list->head)// the head is NULL (there is no nodes)
+  if (!list->head) // the head is NULL (there is no nodes)
   {
     printf("\n");
     pthread_mutex_unlock(&(list->lock));
@@ -181,7 +188,8 @@ void print_list(list *list)
   pthread_mutex_lock(&(list->head->lock));
 
   node *curr = list->head;
-  print_node(curr);//print the first node
+  pthread_mutex_unlock(&(list->lock));
+  print_node(curr); // print the first node
 
   // print the rest of the nodes
   while (curr->next)
@@ -196,32 +204,33 @@ void print_list(list *list)
   // unlock for the last node
   pthread_mutex_unlock(&(curr->lock));
   printf("\n");
-  pthread_mutex_unlock(&(list->lock));
-
 }
 
-void count_list(list* list, int (*predicate)(int))
+void count_list(list *list, int (*predicate)(int))
 {
-    int count = 0;
-    if (list == NULL) {
-        printf("%d items were counted\n", count);
-        return;
-    }
-
-    pthread_mutex_lock(&(list->lock));
-    node* curr = list->head;
-    pthread_mutex_unlock(&(list->lock));
-
-    while (curr) {
-        pthread_mutex_lock(&(curr->lock));
-        if (predicate(curr->value)) {
-            count++;
-        }
-        node* next = curr->next;
-        pthread_mutex_unlock(&(curr->lock));
-        curr = next;
-    }
-
+  int count = 0;
+  if (list == NULL)
+  {
     printf("%d items were counted\n", count);
-}
+    return;
+  }
 
+  pthread_mutex_lock(&(list->lock));
+  node *curr = list->head;
+
+  while (curr)
+  {
+    pthread_mutex_lock(&(curr->lock));
+    if (predicate(curr->value))
+    {
+      count++;
+    }
+    node *next = curr->next;
+    pthread_mutex_unlock(&(curr->lock));
+    curr = next;
+  }
+
+  printf("%d items were counted\n", count);
+  
+  pthread_mutex_unlock(&(list->lock));
+}
