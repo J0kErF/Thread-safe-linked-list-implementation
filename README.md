@@ -18,6 +18,7 @@ To use the concurrent list, first create a new list with create_list(). Then, yo
 Example
 The following code creates a list, inserts some values into it, and then prints the contents of the list:
 
+```
 list* list = create_list();
 
 insert_value(list, 10);
@@ -25,14 +26,15 @@ insert_value(list, 20);
 insert_value(list, 30);
 
 print_list(list);
+```
 
 
 This code will print the following output:
 
-10 20 30
+`10 20 30`
 
-Thread Safety
+## Thread Safety
 The concurrent list is thread-safe. This means that multiple threads can safely access the list at the same time without corrupting the data.
 
-License
+## License
 The concurrent list is released under the MIT License.
